@@ -1,5 +1,5 @@
-import asyncio
-import zmq, zmq.asyncio
+import zmq
+import zmq.asyncio
 
 
 class Connector:
@@ -7,29 +7,23 @@ class Connector:
     Data transmission class
     """
 
-    def __init__(self, host='127.0.0.1', port=5555, cmd_port=5556):
+    def __init__(self, host, port):
         self.context = zmq.asyncio.Context()
-        self.init_connections(host, port, cmd_port)
-
-    def init_connections(self, host, port, cmd_port):
-        self.sender = self.context.socket(zmq.PUB)
-        self.sender.setsockopt(zmq.LINGER, 1)
-        self.sender.connect(f'tcp://{host}:{port}')
-        self.cmd_reciever = self.context.socket(zmq.REP)
-        self.cmd_reciever.bind(f'tcp://*:{cmd_port}')
+        self.host = host
+        self.port = port
+        self.sock = self.context.socket(zmq.PUB)
+        self.sock.setsockopt(zmq.LINGER, 1)
+        self.sock.connect(f'tcp://{host}:{port}')
 
     async def send_data(self, data):
-        loop = asyncio.get_running_loop()
-        await self.sender.send_json(data)
-        # await loop.run_in_executor(None, self.sender.send_json, data)
+        await self.sock.send_json(data)
 
-    async def listen_for_command(self):
-        loop = asyncio.get_running_loop()
-        command = await self.cmd_reciever.recv_json()
-        # command = await loop.run_in_executor(None, self.cmd_reciever.recv_json)
-        rep = {
-            'result': 'ok'
-        }
-        await self.cmd_reciever.send_json(rep)
-        # await loop.run_in_executor(None, self.cmd_reciever.send_json, rep)
-        return command
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        print('Closing connection...')
+        self.sock.close()
+        self.context.term()
+        print(f'Connection to {self.host}:{self.port} closed')
+
