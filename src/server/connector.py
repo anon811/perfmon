@@ -4,7 +4,7 @@ import zmq.asyncio
 
 class Connector:
     """
-    ZMQ connector.
+    The data receiving class for the performance monitor Server.
     """
 
     def __init__(self, port=5555):

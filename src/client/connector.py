@@ -4,7 +4,7 @@ import zmq.asyncio
 
 class Connector:
     """
-    Data transmission class
+    Data transmission class for performance monitor Client.
     """
 
     def __init__(self, host, port):

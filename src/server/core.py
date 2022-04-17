@@ -1,11 +1,7 @@
 import asyncio
 import signal
 from contextlib import suppress
-from connector import Connector
-from dataprocessors import Plotter
-
-
-DQ_CAPACITY = 1000
+from .connector import Connector
 
 
 # Костыль для ZMQ
@@ -15,6 +11,11 @@ asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 class PerfMonServer:
     """
     Server for remote performance monitoring.
+
+    To start server use `run` method.
+    After the launch starts listening to the port specified in the "port" parameter.
+    The received data is processed using data processors. To add data processor
+    use `add_data_processor` method.
     """
 
     def __init__(self, port=5555):
@@ -54,11 +55,3 @@ class PerfMonServer:
             data_processor.stop()
         for task in self.tasks:
             task.cancel()
-
-
-if __name__ == '__main__':
-
-    srv = PerfMonServer()
-    p = Plotter()
-    srv.add_data_processor(p)
-    srv.run()

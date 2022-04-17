@@ -2,7 +2,7 @@ import asyncio
 import platform
 import signal
 from contextlib import suppress
-from connector import Connector
+from .connector import Connector
 
 
 # Костыль для ZMQ
@@ -11,7 +11,12 @@ asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 class PerfMonClient:
     """
-    Gather and send metrics to Server.
+    Gather and send collectors to Server.
+
+    `Host` and `port` params are used to establish a connection to the Server.
+    `Interval` param  sets the polling frequency (seconds) for metric collectors.
+    To add a metric collector, use the `add_metric` method. It takes the name
+    of metric and callback function.
     """
 
     def __init__(self, host='127.0.0.1', port='5555', interval=5):
@@ -73,11 +78,3 @@ class PerfMonClient:
         print('Shutting down client...')
         for task in self.tasks:
             task.cancel()
-
-
-if __name__ == '__main__':
-    from metrics import cpu_percent, ram_percent
-    c1 = PerfMonClient(interval=2)
-    c1.add_metric('CPU', cpu_percent)
-    c1.add_metric('RAM', ram_percent)
-    c1.run()
